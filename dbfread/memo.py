@@ -34,6 +34,9 @@ DB4MemoHeader = StructParser(
     ['reserved',  # Always 0xff 0xff 0x08 0x08.
      'length'])
 
+VFPSpecialTables = ['.dbc','.scx','.vcx','.mnx','.frx','.pjx','.lbx']
+VFPSpecialMemos = ['.dct','.sct','.vct','.mnt','.frt','.pjt','.lbt']
+
 # Used for Visual FoxPro memos to distinguish binary from text memos.
 
 class VFPMemo(bytes):
@@ -164,6 +167,12 @@ class DB4MemoFile(MemoFile):
 
 
 def find_memofile(dbf_filename):
+    if dbf_filename.lower()[-4:] in VFPSpecialTables:
+        name = ifind(dbf_filename, ext=VFPSpecialMemos[VFPSpecialTables.index(dbf_filename.lower()[-4:])])
+        if name:
+            return name
+        else:
+            return None
     for ext in ['.fpt', '.dbt']:
         name = ifind(dbf_filename, ext=ext)
         if name:
@@ -173,6 +182,8 @@ def find_memofile(dbf_filename):
 
 
 def open_memofile(filename, dbversion):
+    if filename.lower()[-4:] in VFPSpecialMemos:
+        return VFPMemoFile(filename)
     if filename.lower().endswith('.fpt'):
         return VFPMemoFile(filename)
     else:
